@@ -16,6 +16,14 @@
     "lib": [
       "es2018",
       "dom"
-    ]
+    ],
+    "paths": {
+      "ionic-theme": [
+        "dist/ionic-theme"
+      ],
+      "ionic-theme/*": [
+        "dist/ionic-theme/*"
+      ]
+    }
   }
 }
