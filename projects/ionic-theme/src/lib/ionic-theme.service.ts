@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
-import * as Color from 'color';
+import Color from 'color';
 
 export interface IonicColors {
   primary?: string;
@@ -19,6 +19,7 @@ export interface CustomProperties {
   [propertyName: string]: string;
 }
 
+// @dynamic
 @Injectable({
   providedIn: 'root'
 })
