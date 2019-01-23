@@ -5,8 +5,8 @@
 ## Demo Application
 
 ```sh
-git clone https://github.com/kyawswarthwin/ionic-theme.git
-cd ionic-theme
-npm install
-ionic serve
+$ git clone https://github.com/kyawswarthwin/ionic-theme.git
+$ cd ionic-theme
+$ npm install
+$ ionic serve
 ```
