@@ -2,6 +2,10 @@ import { Injectable, Inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import Color from 'color';
 
+export interface Theme {
+  colors?: IonicColors;
+  properties?: Properties;
+}
 export interface IonicColors {
   primary?: string;
   secondary?: string;
@@ -12,10 +16,10 @@ export interface IonicColors {
   dark?: string;
   medium?: string;
   light?: string;
-  backgroundColor?: string;
-  textColor?: string;
+  foreground?: string;
+  background?: string;
 }
-export interface CustomProperties {
+export interface Properties {
   [propertyName: string]: string;
 }
 
@@ -27,7 +31,7 @@ export class IonicThemeService {
   constructor(@Inject(DOCUMENT) private document: Document) {}
 
   getPropertyValue(propertyName: string): string {
-    return this.document.documentElement.style.getPropertyValue(propertyName);
+    return window.getComputedStyle(this.document.documentElement).getPropertyValue(propertyName);
   }
 
   setProperty(propertyName: string, value: string | null, priority?: string | null): void {
@@ -38,40 +42,64 @@ export class IonicThemeService {
     return this.document.documentElement.style.removeProperty(propertyName);
   }
 
-  setTheme(colors?: IonicColors, properties?: CustomProperties): void {
-    const css = `${this.generateColor(colors)}
-${this.generateColorSteps(colors.backgroundColor, colors.textColor)}
-${this.generateCustomProperties(properties)}`;
-    this.setGlobalCSS(css);
+  setTheme(theme: Theme): void {
+    this.document.documentElement.style.cssText = Object.entries(this.generateTheme(theme)).reduce(
+      (accumulator, [propertyName, value]) => {
+        return (accumulator += `${propertyName}: ${value};`);
+      },
+      ''
+    );
   }
 
-  private generateColor(colors: IonicColors): string {
-    return Object.entries(colors || {})
-      .filter(([name]) => {
-        const filter = [
-          'primary',
-          'secondary',
-          'tertiary',
-          'success',
-          'warning',
-          'danger',
-          'dark',
-          'medium',
-          'light'
-        ];
-        return filter.indexOf(name) > -1;
-      })
-      .map(([name, color]) => {
-        color = Color(color);
-        return `--ion-color-${name}: ${color.hex()};
---ion-color-${name}-rgb: ${this.colorToRGB(color)};
---ion-color-${name}-contrast: ${this.contrast(color).hex()};
---ion-color-${name}-contrast-rgb: ${this.colorToRGB(this.contrast(color))};
---ion-color-${name}-shade: ${this.shade(color).hex()};
---ion-color-${name}-tint: ${this.tint(color).hex()};
-`;
-      })
-      .join('\n');
+  private generateTheme(theme: Theme): Properties {
+    let properties = { ...theme.properties };
+    if (theme.colors) {
+      properties = {
+        ...properties,
+        ...Object.entries(theme.colors)
+          .filter(([name]) => {
+            return [
+              'primary',
+              'secondary',
+              'tertiary',
+              'success',
+              'warning',
+              'danger',
+              'dark',
+              'medium',
+              'light'
+            ].includes(name);
+          })
+          .map(([name, color]) => {
+            color = Color(color);
+            return {
+              [`--ion-color-${name}`]: color.hex(),
+              [`--ion-color-${name}-rgb`]: this.colorToRGB(color),
+              [`--ion-color-${name}-contrast`]: this.contrast(color).hex(),
+              [`--ion-color-${name}-contrast-rgb`]: this.colorToRGB(this.contrast(color)),
+              [`--ion-color-${name}-shade`]: this.shade(color).hex(),
+              [`--ion-color-${name}-tint`]: this.tint(color).hex()
+            };
+          })
+          .reduce((accumulator, currentValue) => {
+            return { ...accumulator, ...currentValue };
+          }, {})
+      };
+      if (theme.colors.background && theme.colors.foreground) {
+        const backgroundColor = Color(theme.colors.background);
+        const foregroundColor = Color(theme.colors.foreground);
+        properties[`--ion-background-color`] = backgroundColor.hex();
+        properties[`--ion-background-color-rgb`] = this.colorToRGB(backgroundColor);
+        properties[`--ion-text-color`] = foregroundColor.hex();
+        properties[`--ion-text-color-rgb`] = this.colorToRGB(foregroundColor);
+        for (let i = 50; i < 1000; i += 50) {
+          properties[`--ion-color-step-${i}`] = foregroundColor
+            .mix(backgroundColor, 1 - i / 1000)
+            .hex();
+        }
+      }
+    }
+    return properties;
   }
 
   private colorToRGB(color: Color): string {
@@ -92,35 +120,5 @@ ${this.generateCustomProperties(properties)}`;
 
   private tint(color: Color): Color {
     return color.mix(Color('#fff'), 0.1);
-  }
-
-  private generateColorSteps(backgroundColor: string | Color, textColor: string | Color): string {
-    let result = '';
-    if (backgroundColor && textColor) {
-      backgroundColor = Color(backgroundColor);
-      textColor = Color(textColor);
-      result += `--ion-background-color: ${backgroundColor.hex()};
---ion-background-color-rgb: ${this.colorToRGB(backgroundColor)};
---ion-text-color: ${textColor.hex()};
---ion-text-color-rgb: ${this.colorToRGB(textColor)};
-`;
-      for (let i = 50; i < 1000; i += 50) {
-        result += `--ion-color-step-${i}: ${textColor.mix(backgroundColor, 1 - i / 1000).hex()};
-`;
-      }
-    }
-    return result;
-  }
-
-  private setGlobalCSS(css: string): void {
-    this.document.documentElement.style.cssText = css;
-  }
-
-  private generateCustomProperties(properties: CustomProperties): string {
-    return Object.entries(properties || {})
-      .map(([propertyName, value]) => {
-        return `${propertyName}: ${value};`;
-      })
-      .join('\n');
   }
 }
