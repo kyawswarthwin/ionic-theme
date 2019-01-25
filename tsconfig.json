@@ -23,6 +23,12 @@
       ],
       "ionic-theme/*": [
         "dist/ionic-theme/*"
+      ],
+      "ionic-settings": [
+        "dist/ionic-settings"
+      ],
+      "ionic-settings/*": [
+        "dist/ionic-settings/*"
       ]
     }
   }

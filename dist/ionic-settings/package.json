@@ -1,0 +1,22 @@
+{
+  "name": "ionic-settings",
+  "version": "0.0.1",
+  "peerDependencies": {
+    "@angular/common": "^7.1.0",
+    "@angular/core": "^7.1.0",
+    "@ionic/storage": "^2.2.0"
+  },
+  "main": "bundles/ionic-settings.umd.js",
+  "module": "fesm5/ionic-settings.js",
+  "es2015": "fesm2015/ionic-settings.js",
+  "esm5": "esm5/ionic-settings.js",
+  "esm2015": "esm2015/ionic-settings.js",
+  "fesm5": "fesm5/ionic-settings.js",
+  "fesm2015": "fesm2015/ionic-settings.js",
+  "typings": "ionic-settings.d.ts",
+  "metadata": "ionic-settings.metadata.json",
+  "sideEffects": false,
+  "dependencies": {
+    "tslib": "^1.9.0"
+  }
+}

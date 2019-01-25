@@ -219,6 +219,41 @@
           }
         }
       }
+    },
+    "ionic-settings": {
+      "root": "projects/ionic-settings",
+      "sourceRoot": "projects/ionic-settings/src",
+      "projectType": "library",
+      "prefix": "ion",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/ionic-settings/tsconfig.lib.json",
+            "project": "projects/ionic-settings/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/ionic-settings/src/test.ts",
+            "tsConfig": "projects/ionic-settings/tsconfig.spec.json",
+            "karmaConfig": "projects/ionic-settings/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/ionic-settings/tsconfig.lib.json",
+              "projects/ionic-settings/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }
   },
   "cli": {
