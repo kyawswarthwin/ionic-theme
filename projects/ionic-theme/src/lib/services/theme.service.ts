@@ -1,8 +1,16 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable, InjectionToken, Inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { SettingsService } from 'ionic-settings';
 import Color from 'color';
+import { StatusBar } from '@ionic-native/status-bar/ngx';
 
+export interface ThemeConfig {
+  themes: Theme[];
+  defaultTheme: string;
+}
 export interface Theme {
+  name: string;
   colors?: IonicColors;
   properties?: Properties;
 }
@@ -13,42 +21,81 @@ export interface IonicColors {
   success?: string;
   warning?: string;
   danger?: string;
-  dark?: string;
-  medium?: string;
   light?: string;
+  medium?: string;
+  dark?: string;
   foreground?: string;
   background?: string;
 }
 export interface Properties {
   [propertyName: string]: string;
 }
+export const THEME_CONFIG = new InjectionToken<ThemeConfig>('THEME_CONFIG');
 
 // @dynamic
 @Injectable({
   providedIn: 'root'
 })
-export class IonicThemeService {
-  constructor(@Inject(DOCUMENT) private document: Document) {}
+export class ThemeService {
+  private theme: BehaviorSubject<Theme>;
 
-  getPropertyValue(propertyName: string): string {
-    return window.getComputedStyle(this.document.documentElement).getPropertyValue(propertyName);
+  constructor(
+    @Inject(THEME_CONFIG) private config: ThemeConfig,
+    @Inject(DOCUMENT) private document: Document,
+    private settings: SettingsService,
+    private statusBar: StatusBar
+  ) {}
+
+  initialize(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.theme) {
+        this.theme = new BehaviorSubject(
+          this.getTheme(this.settings.get('theme', this.config.defaultTheme))
+        );
+        this.setTheme(this.theme.value);
+      }
+      resolve();
+    });
   }
 
-  setProperty(propertyName: string, value: string | null, priority?: string | null): void {
-    this.document.documentElement.style.setProperty(propertyName, value, priority);
+  getThemes(): Theme[] {
+    return this.config.themes;
   }
 
-  removeProperty(propertyName: string): string {
-    return this.document.documentElement.style.removeProperty(propertyName);
+  getTheme(name: string): Theme {
+    const theme = this.config.themes.find(t => t.name === name);
+    if (!theme) {
+      throw new Error('Theme Not Found');
+    }
+    return theme;
   }
 
-  setTheme(theme: Theme): void {
-    this.document.documentElement.style.cssText = Object.entries(this.generateTheme(theme)).reduce(
+  isActiveTheme(name: string): boolean {
+    return this.theme.value.name === name;
+  }
+
+  getActiveTheme(): Observable<Theme> {
+    return this.theme.asObservable();
+  }
+
+  setActiveTheme(name: string): void {
+    if (!this.isActiveTheme(name)) {
+      const theme = this.getTheme(name);
+      this.setTheme(theme);
+      this.theme.next(theme);
+    }
+  }
+
+  private setTheme(theme: Theme): void {
+    const properties = this.generateTheme(theme);
+    this.statusBar.backgroundColorByHexString(properties['--ion-color-primary-shade']);
+    this.document.documentElement.style.cssText = Object.entries(properties).reduce(
       (accumulator, [propertyName, value]) => {
         return (accumulator += `${propertyName}: ${value};`);
       },
       ''
     );
+    this.settings.set('theme', theme.name);
   }
 
   private generateTheme(theme: Theme): Properties {
@@ -65,9 +112,9 @@ export class IonicThemeService {
               'success',
               'warning',
               'danger',
-              'dark',
+              'light',
               'medium',
-              'light'
+              'dark'
             ].includes(name);
           })
           .map(([name, color]) => {

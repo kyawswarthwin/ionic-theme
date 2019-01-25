@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 
-import { IonicThemeService } from './ionic-theme.service';
+import { ThemeService } from './theme.service';
 
-describe('IonicThemeService', () => {
+describe('ThemeService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
   it('should be created', () => {
-    const service: IonicThemeService = TestBed.get(IonicThemeService);
+    const service: ThemeService = TestBed.get(ThemeService);
     expect(service).toBeTruthy();
   });
 });

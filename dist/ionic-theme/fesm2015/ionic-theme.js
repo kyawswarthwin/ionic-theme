@@ -1,50 +1,100 @@
-import { Injectable, Inject, defineInjectable, inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { BehaviorSubject } from 'rxjs';
 import Color from 'color';
+import { StatusBar } from '@ionic-native/status-bar/ngx';
+import { StatusBar as StatusBar$1 } from '@ionic-native/status-bar/ngx/index';
+import { __awaiter } from 'tslib';
+import { Injectable, InjectionToken, Inject, APP_INITIALIZER, NgModule, defineInjectable, inject } from '@angular/core';
+import { SettingsService } from 'ionic-settings';
 
 /**
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
+/** @type {?} */
+const THEME_CONFIG = new InjectionToken('THEME_CONFIG');
 // @dynamic
-class IonicThemeService {
+class ThemeService {
     /**
+     * @param {?} config
      * @param {?} document
+     * @param {?} settings
+     * @param {?} statusBar
      */
-    constructor(document) {
+    constructor(config, document, settings, statusBar) {
+        this.config = config;
         this.document = document;
+        this.settings = settings;
+        this.statusBar = statusBar;
     }
     /**
-     * @param {?} propertyName
      * @return {?}
      */
-    getPropertyValue(propertyName) {
-        return window.getComputedStyle(this.document.documentElement).getPropertyValue(propertyName);
+    initialize() {
+        return new Promise((resolve, reject) => {
+            if (!this.theme) {
+                this.theme = new BehaviorSubject(this.getTheme(this.settings.get('theme', this.config.defaultTheme)));
+                this.setTheme(this.theme.value);
+            }
+            resolve();
+        });
     }
     /**
-     * @param {?} propertyName
-     * @param {?} value
-     * @param {?=} priority
      * @return {?}
      */
-    setProperty(propertyName, value, priority) {
-        this.document.documentElement.style.setProperty(propertyName, value, priority);
+    getThemes() {
+        return this.config.themes;
     }
     /**
-     * @param {?} propertyName
+     * @param {?} name
      * @return {?}
      */
-    removeProperty(propertyName) {
-        return this.document.documentElement.style.removeProperty(propertyName);
+    getTheme(name) {
+        /** @type {?} */
+        const theme = this.config.themes.find(t => t.name === name);
+        if (!theme) {
+            throw new Error('Theme Not Found');
+        }
+        return theme;
     }
     /**
+     * @param {?} name
+     * @return {?}
+     */
+    isActiveTheme(name) {
+        return this.theme.value.name === name;
+    }
+    /**
+     * @return {?}
+     */
+    getActiveTheme() {
+        return this.theme.asObservable();
+    }
+    /**
+     * @param {?} name
+     * @return {?}
+     */
+    setActiveTheme(name) {
+        if (!this.isActiveTheme(name)) {
+            /** @type {?} */
+            const theme = this.getTheme(name);
+            this.setTheme(theme);
+            this.theme.next(theme);
+        }
+    }
+    /**
+     * @private
      * @param {?} theme
      * @return {?}
      */
     setTheme(theme) {
-        this.document.documentElement.style.cssText = Object.entries(this.generateTheme(theme)).reduce((accumulator, [propertyName, value]) => {
+        /** @type {?} */
+        const properties = this.generateTheme(theme);
+        this.statusBar.backgroundColorByHexString(properties['--ion-color-primary-shade']);
+        this.document.documentElement.style.cssText = Object.entries(properties).reduce((accumulator, [propertyName, value]) => {
             return (accumulator += `${propertyName}: ${value};`);
         }, '');
+        this.settings.set('theme', theme.name);
     }
     /**
      * @private
@@ -64,9 +114,9 @@ class IonicThemeService {
                     'success',
                     'warning',
                     'danger',
-                    'dark',
+                    'light',
                     'medium',
-                    'light'
+                    'dark'
                 ].includes(name);
             })
                 .map(([name, color]) => {
@@ -138,16 +188,59 @@ class IonicThemeService {
         return color.mix(Color('#fff'), 0.1);
     }
 }
-IonicThemeService.decorators = [
+ThemeService.decorators = [
     { type: Injectable, args: [{
                 providedIn: 'root'
             },] }
 ];
 /** @nocollapse */
-IonicThemeService.ctorParameters = () => [
-    { type: Document, decorators: [{ type: Inject, args: [DOCUMENT,] }] }
+ThemeService.ctorParameters = () => [
+    { type: undefined, decorators: [{ type: Inject, args: [THEME_CONFIG,] }] },
+    { type: Document, decorators: [{ type: Inject, args: [DOCUMENT,] }] },
+    { type: SettingsService },
+    { type: StatusBar }
 ];
-/** @nocollapse */ IonicThemeService.ngInjectableDef = defineInjectable({ factory: function IonicThemeService_Factory() { return new IonicThemeService(inject(DOCUMENT)); }, token: IonicThemeService, providedIn: "root" });
+/** @nocollapse */ ThemeService.ngInjectableDef = defineInjectable({ factory: function ThemeService_Factory() { return new ThemeService(inject(THEME_CONFIG), inject(DOCUMENT), inject(SettingsService), inject(StatusBar$1)); }, token: ThemeService, providedIn: "root" });
+
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ */
+// @dynamic
+class IonicThemeModule {
+    /**
+     * @param {?} config
+     * @return {?}
+     */
+    static forRoot(config) {
+        return {
+            ngModule: IonicThemeModule,
+            providers: [
+                {
+                    provide: THEME_CONFIG,
+                    useValue: config
+                },
+                {
+                    provide: APP_INITIALIZER,
+                    useFactory: (settings, theme) => {
+                        return () => {
+                            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                yield settings.initialize();
+                                yield theme.initialize();
+                                resolve();
+                            }));
+                        };
+                    },
+                    deps: [SettingsService, ThemeService],
+                    multi: true
+                }
+            ]
+        };
+    }
+}
+IonicThemeModule.decorators = [
+    { type: NgModule }
+];
 
 /**
  * @fileoverview added by tsickle
@@ -159,6 +252,6 @@ IonicThemeService.ctorParameters = () => [
  * @suppress {checkTypes,extraRequire,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
-export { IonicThemeService };
+export { THEME_CONFIG, ThemeService, IonicThemeModule };
 
 //# sourceMappingURL=ionic-theme.js.map

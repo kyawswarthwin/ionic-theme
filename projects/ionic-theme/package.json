@@ -1,6 +1,6 @@
 {
   "name": "ionic-theme",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Ionic 4 Theme",
   "repository": {
     "type": "git",
@@ -19,6 +19,9 @@
   "peerDependencies": {
     "@angular/common": "^7.1.0",
     "@angular/core": "^7.1.0",
-    "color": "^3.1.0"
+    "@ionic-native/status-bar": "5.0.0-beta.21",
+    "color": "^3.1.0",
+    "ionic-settings": "0.0.1",
+    "rxjs": "~6.3.3"
   }
 }
