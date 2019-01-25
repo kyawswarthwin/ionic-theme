@@ -11,46 +11,12 @@ import { SideMenuOptions } from 'ionic-side-menu';
 })
 export class AppComponent {
   options: SideMenuOptions = {
-    header: {
-      background: 'assets/img/side-menu-bg.jpg',
-      profile: {
-        picture: 'assets/img/avatar.png',
-        name: 'John Doe',
-        email: 'johndoe@gmail.com'
-      },
-      onClick: () => {
-        alert('header clicked');
-      }
-    },
     menus: [
       {
         items: [
           {
-            icon: 'home',
-            title: 'Home',
-            badge: '3',
-            badgeColor: 'danger',
-            path: '/home'
-          },
-          {
-            icon: 'information-circle',
-            title: 'About',
-            path: '/about'
-          }
-        ]
-      },
-      {
-        isDivider: true
-      },
-      {
-        header: 'Account',
-        items: [
-          {
-            icon: 'exit',
-            title: 'Logout',
-            onClick: () => {
-              alert('logout clicked');
-            }
+            title: 'Settings',
+            path: '/settings'
           }
         ]
       }

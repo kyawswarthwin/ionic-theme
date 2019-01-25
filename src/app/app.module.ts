@@ -22,7 +22,7 @@ import { IonicThemeModule } from 'ionic-theme';
     IonicThemeModule.forRoot({
       themes: [
         {
-          name: 'light',
+          name: 'Light',
           colors: {
             primary: '#3880ff',
             foreground: '#000',
@@ -30,7 +30,7 @@ import { IonicThemeModule } from 'ionic-theme';
           }
         },
         {
-          name: 'dark',
+          name: 'Dark',
           colors: {
             primary: '#f04141',
             foreground: '#fff',
@@ -38,7 +38,7 @@ import { IonicThemeModule } from 'ionic-theme';
           }
         }
       ],
-      defaultTheme: 'dark'
+      defaultTheme: 'Light'
     })
   ],
   providers: [
